@@ -17,8 +17,6 @@ namespace test
             return new Team("AFC Ajax", "The Lancers", "1900", "Amsterdam Arena");
         }
 
-       
-
         [Fact]
         public void CanStoreAndRetrieveHomeColors()
         {
@@ -38,6 +36,30 @@ namespace test
                 var storedTeam = context.Teams.Include(t => t.HomeColors).FirstOrDefault();
 
                 Assert.Equal(Color.Blue, storedTeam.HomeColors.ShirtPrimary);
+            }
+        }
+
+        [Fact]
+        public void CanStoreAndRetrievePlayer()
+        {
+            var team = CreateTeamAjax();
+            Assert.True(team.AddPlayer("Romelu", "Lukaku", out var response));
+            var player = team.Players.First();
+
+            using (var context = new TeamContext())
+            {
+                context.Database.EnsureDeleted();
+                context.Database.EnsureCreated();
+                context.Teams.Add(team);
+                context.SaveChanges();
+            }
+
+            using (var context = new TeamContext())
+            {
+                var teamFound = context.Teams.Find(team.Id);
+                var storedTeam = context.Teams.Include(t => t.Players).FirstOrDefault();
+
+                Assert.Equal(player.Name, storedTeam.Players.First().Name);
             }
         }
 
